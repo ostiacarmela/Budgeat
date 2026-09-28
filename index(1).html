@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Budgeat</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --green-pale:#DCEEDD;
+  --green-mid:#5FA777;
+  --green-deep:#2E5E45;
+  --cream:#FBF9F3;
+  --ink:#22301F;
+  --gold:#C99A3B;
+  --card:#FFFFFF;
+  --line: rgba(46,94,69,0.14);
+  box-sizing:border-box;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --cream:#12180F; --ink:#EDEFE8; --card:#1B2417; --green-pale:#243325; --line:rgba(220,238,221,0.14);
+  }
+}
+:root[data-theme="dark"]{
+  --cream:#12180F; --ink:#EDEFE8; --card:#1B2417; --green-pale:#243325; --line:rgba(220,238,221,0.14);
+}
+html{scroll-padding-top: env(safe-area-inset-top, 0px);}
+*{box-sizing:border-box;}
+body{
+  margin:0; min-height:100%; background:var(--cream); color:var(--ink);
+  font-family:'Manrope',system-ui,sans-serif;
+}
+h1,h2,h3,.display{font-family:'Fraunces',Georgia,serif;}
+
+/* ---- Splash ---- */
+#splash{
+  position:fixed; inset:0; background:var(--green-deep); color:var(--green-pale);
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:18px;
+  z-index:50; transition:opacity .6s ease;
+}
+#splash.hide{opacity:0; pointer-events:none;}
+.logo-mark{
+  width:104px; height:104px; border-radius:26px; background:var(--green-pale);
+  display:flex; align-items:center; justify-content:center; box-shadow:0 10px 30px rgba(0,0,0,.25);
+  animation:pop .7s cubic-bezier(.2,.9,.3,1.3);
+}
+@keyframes pop{from{transform:scale(.4);opacity:0}to{transform:scale(1);opacity:1}}
+#splash .brand{font-size:2rem; letter-spacing:.01em; margin:0;}
+#splash .tagline{font-size:.95rem; opacity:.85; margin:0;}
+.loadbar{width:140px; height:3px; background:rgba(255,255,255,.2); border-radius:2px; overflow:hidden; margin-top:8px;}
+.loadbar > span{display:block; height:100%; width:0%; background:var(--gold); animation:load 5s linear forwards;}
+@keyframes load{to{width:100%}}
+
+/* ---- App shell ---- */
+#app{display:none; min-height:100vh;}
+#app.show{display:block;}
+header.top{
+  display:flex; align-items:center; gap:12px; padding:14px 20px;
+  padding-top:calc(14px + env(safe-area-inset-top,0px));
+  border-bottom:1px solid var(--line); background:var(--cream);
+  position:sticky; top:0; z-index:5;
+}
+header.top .logo-mark{width:38px;height:38px;border-radius:11px;}
+header.top .brand{font-size:1.25rem; margin:0;}
+header.top .tagline{font-size:.72rem; opacity:.65; margin:0;}
+
+main{max-width:1060px; margin:0 auto; padding:22px 18px 60px;}
+
+.budget-row{
+  background:var(--card); border:1px solid var(--line); border-radius:18px;
+  padding:18px 20px; margin-bottom:20px; display:flex; flex-wrap:wrap; gap:14px; align-items:end;
+}
+.field{display:flex; flex-direction:column; gap:6px; flex:1; min-width:150px;}
+.field label{font-size:.78rem; opacity:.75;}
+.field input{
+  padding:10px 12px; border-radius:10px; border:1px solid var(--line);
+  background:var(--cream); color:var(--ink); font-family:inherit; font-size:.95rem;
+}
+.field input:focus-visible, button:focus-visible{outline:2px solid var(--green-mid); outline-offset:2px;}
+button.primary{
+  background:var(--green-deep); color:var(--green-pale); border:none; border-radius:10px;
+  padding:11px 18px; font-family:inherit; font-size:.92rem; cursor:pointer; white-space:nowrap;
+}
+button.primary:hover{background:var(--green-mid);}
+
+.panels{display:grid; grid-template-columns:1.15fr .85fr; gap:18px;}
+@media (max-width:760px){.panels{grid-template-columns:1fr;}}
+
+.panel{background:var(--card); border:1px solid var(--line); border-radius:20px; padding:18px; display:flex; flex-direction:column;}
+.panel h2{font-size:1.05rem; margin:0 0 4px;}
+.panel .sub{font-size:.78rem; opacity:.65; margin:0 0 14px;}
+
+/* chat */
+#chatlog{flex:1; min-height:260px; max-height:420px; overflow-y:auto; display:flex; flex-direction:column; gap:10px; padding-right:4px;}
+.msg{padding:10px 13px; border-radius:14px; font-size:.9rem; line-height:1.4; max-width:92%;}
+.msg.bot{background:var(--green-pale); align-self:flex-start; border-bottom-left-radius:4px;}
+.msg.user{background:var(--green-deep); color:var(--green-pale); align-self:flex-end; border-bottom-right-radius:4px;}
+.list-card{background:var(--cream); border:1px dashed var(--line); border-radius:12px; padding:10px 12px; margin-top:4px;}
+.list-card ul{margin:6px 0 0; padding-left:18px; font-size:.87rem;}
+.list-card .total{margin-top:8px; font-weight:700; color:var(--green-deep);}
+:root[data-theme="dark"] .list-card .total{color:var(--gold);}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .list-card .total{color:var(--gold);}}
+
+/* camera */
+.cam-view{
+  background:#0e150c; border-radius:14px; aspect-ratio:4/3; display:flex; align-items:center; justify-content:center;
+  overflow:hidden; position:relative; margin-bottom:12px;
+}
+.cam-view video{width:100%; height:100%; object-fit:cover;}
+.cam-placeholder{color:#c7d8c9; font-size:.85rem; text-align:center; padding:20px;}
+.cam-actions{display:flex; gap:10px;}
+button.ghost{
+  background:transparent; border:1px solid var(--line); color:var(--ink); border-radius:10px;
+  padding:9px 14px; font-family:inherit; font-size:.85rem; cursor:pointer; flex:1;
+}
+.nutri-card{margin-top:14px; border-top:1px solid var(--line); padding-top:12px; font-size:.87rem;}
+.nutri-card h3{margin:0 0 6px; font-size:.98rem;}
+.nutri-grid{display:grid; grid-template-columns:1fr 1fr; gap:6px 14px; margin-top:8px;}
+.nutri-grid div span{display:block; font-size:.72rem; opacity:.6;}
+.euro{color:var(--gold); font-weight:700;}
+
+footer{text-align:center; font-size:.72rem; opacity:.5; padding:10px 0 26px;}
+</style>
+</head>
+<body>
+
+<div id="splash">
+  <div class="logo-mark">
+    <svg width="60" height="60" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M12 20h6l4 20a3 3 0 003 2.4h16a3 3 0 003-2.6l3-14H18" stroke="#2E5E45" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="25" cy="48" r="2.6" fill="#2E5E45"/>
+      <circle cx="38" cy="48" r="2.6" fill="#2E5E45"/>
+      <rect x="36" y="10" width="16" height="12" rx="2.5" fill="#C99A3B"/>
+      <text x="44" y="19.5" font-family="Manrope" font-size="9" fill="#2E5E45" text-anchor="middle" font-weight="700">€</text>
+    </svg>
+  </div>
+  <h1 class="brand display">Budgeat</h1>
+  <p class="tagline">Tu lista a medida, tu ahorro asegurado.</p>
+  <div class="loadbar"><span></span></div>
+</div>
+
+<div id="app">
+  <header class="top">
+    <div class="logo-mark">
+      <svg width="22" height="22" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 20h6l4 20a3 3 0 003 2.4h16a3 3 0 003-2.6l3-14H18" stroke="#2E5E45" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="25" cy="48" r="3" fill="#2E5E45"/>
+        <circle cx="38" cy="48" r="3" fill="#2E5E45"/>
+      </svg>
+    </div>
+    <div>
+      <p class="brand display">Budgeat</p>
+      <p class="tagline">Tu lista a medida, tu ahorro asegurado.</p>
+    </div>
+  </header>
+
+  <main>
+    <div class="budget-row">
+      <div class="field">
+        <label for="budget">Tu presupuesto (€)</label>
+        <input id="budget" type="number" min="5" step="1" placeholder="ej. 30">
+      </div>
+      <div class="field" style="flex:2;">
+        <label for="prefs">Preferencias alimentarias</label>
+        <input id="prefs" type="text" placeholder="ej. vegetariano, sin lactosa">
+      </div>
+      <button class="primary" id="genBtn">Generar mi lista</button>
+    </div>
+
+    <div class="panels">
+      <section class="panel">
+        <h2>Chat con tu asistente</h2>
+        <p class="sub">Te propone la compra según tu presupuesto y tus gustos.</p>
+        <div id="chatlog">
+          <div class="msg bot">Hola, soy tu asistente de Budgeat. Cuéntame tu presupuesto y tus preferencias arriba, y te preparo la lista.</div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>Escanea un producto</h2>
+        <p class="sub">Elige una foto de tu galería o haz una nueva y consulta sus ingredientes y nutrientes.</p>
+        <div class="cam-view" id="camView">
+          <p class="cam-placeholder">La imagen del producto aparecerá aquí.</p>
+        </div>
+        <div class="cam-actions">
+          <button class="ghost" id="openGallery">Abrir galería</button>
+          <button class="ghost" id="openCam">Hacer foto</button>
+        </div>
+        <input type="file" accept="image/*" id="galleryInput" style="display:none;">
+        <input type="file" accept="image/*" capture="environment" id="camInput" style="display:none;">
+        <div id="nutriResult"></div>
+      </section>
+    </div>
+  </main>
+  <footer>Prototipo de Budgeat &mdash; datos de ejemplo con fines demostrativos.</footer>
+</div>
+
+<script>
+// ---- Splash ----
+setTimeout(()=>{
+  document.getElementById('splash').classList.add('hide');
+  document.getElementById('app').classList.add('show');
+},5000);
+
+// ---- Food database ----
+const FOODS = [
+  {name:"Lentejas (500g)", price:1.2, tags:["vegano","vegetariano","economico"], cal:116, nutrients:"Proteína 9g · Fibra 8g · Hierro", cat:"proteina"},
+  {name:"Arroz integral (1kg)", price:1.8, tags:["vegano","vegetariano","economico"], cal:111, nutrients:"Carbohidratos 23g · Fibra 1.8g", cat:"carbo"},
+  {name:"Manzanas (1kg)", price:1.9, tags:["vegano","vegetariano","economico"], cal:52, nutrients:"Vitamina C · Fibra 2.4g", cat:"fruta"},
+  {name:"Zanahorias (1kg)", price:1.1, tags:["vegano","vegetariano","economico"], cal:41, nutrients:"Vitamina A · Fibra 2.8g", cat:"verdura"},
+  {name:"Huevos (docena)", price:2.4, tags:["vegetariano"], cal:155, nutrients:"Proteína 13g · Vitamina B12", cat:"proteina"},
+  {name:"Pechuga de pollo (500g)", price:3.5, tags:["carne"], cal:165, nutrients:"Proteína 31g · Bajo en grasa", cat:"proteina"},
+  {name:"Yogur natural (pack 4)", price:1.6, tags:["vegetariano","lacteos"], cal:61, nutrients:"Calcio · Probióticos", cat:"lacteo"},
+  {name:"Leche de avena (1L)", price:1.4, tags:["vegano","vegetariano","sinlactosa"], cal:45, nutrients:"Calcio añadido · Sin lactosa", cat:"lacteo"},
+  {name:"Pan integral", price:1.5, tags:["vegano","vegetariano","economico"], cal:247, nutrients:"Fibra 6g · Carbohidratos", cat:"carbo"},
+  {name:"Garbanzos (500g)", price:1.3, tags:["vegano","vegetariano","economico"], cal:164, nutrients:"Proteína 9g · Fibra 7g", cat:"proteina"},
+  {name:"Espinacas frescas (300g)", price:1.7, tags:["vegano","vegetariano"], cal:23, nutrients:"Hierro · Vitamina K", cat:"verdura"},
+  {name:"Atún al natural (pack 3)", price:2.9, tags:["pescado"], cal:116, nutrients:"Proteína 26g · Omega 3", cat:"proteina"},
+  {name:"Plátanos (1kg)", price:1.3, tags:["vegano","vegetariano","economico"], cal:89, nutrients:"Potasio · Vitamina B6", cat:"fruta"},
+  {name:"Queso fresco light", price:2.1, tags:["vegetariano","lacteos"], cal:98, nutrients:"Proteína 12g · Calcio", cat:"lacteo"},
+  {name:"Tofu firme (400g)", price:2.3, tags:["vegano","vegetariano","sinlactosa"], cal:76, nutrients:"Proteína 8g · Hierro", cat:"proteina"},
+];
+
+function matchesPrefs(item, prefText){
+  const p = prefText.toLowerCase();
+  if(p.includes("vegano") && !item.tags.includes("vegano")) return false;
+  if(p.includes("vegetarian") && !item.tags.includes("vegetariano")) return false;
+  if(p.includes("sin lactosa") && item.tags.includes("lacteos")) return false;
+  return true;
+}
+
+function buildList(budget, prefText){
+  const pool = FOODS.filter(f=>matchesPrefs(f,prefText)).sort((a,b)=>a.price-b.price);
+  let remaining = budget, chosen = [];
+  for(const item of pool){
+    if(item.price <= remaining && chosen.length < 8){
+      chosen.push(item); remaining -= item.price;
+    }
+  }
+  return {chosen, spent: budget-remaining};
+}
+
+const chatlog = document.getElementById('chatlog');
+function addMsg(text, who, html){
+  const div = document.createElement('div');
+  div.className = 'msg ' + who;
+  if(html){ div.innerHTML = text; } else { div.textContent = text; }
+  chatlog.appendChild(div);
+  chatlog.scrollTop = chatlog.scrollHeight;
+}
+
+document.getElementById('genBtn').addEventListener('click', ()=>{
+  const budget = parseFloat(document.getElementById('budget').value);
+  const prefs = document.getElementById('prefs').value.trim();
+  if(!budget || budget <= 0){
+    addMsg("Antes indícame un presupuesto válido en euros.", "bot");
+    return;
+  }
+  addMsg(`Presupuesto: ${budget}€ · Preferencias: ${prefs || "ninguna en concreto"}`, "user");
+  const {chosen, spent} = buildList(budget, prefs);
+  if(chosen.length === 0){
+    addMsg("No he encontrado productos que encajen con esas preferencias y ese presupuesto. Prueba a ampliarlo.", "bot");
+    return;
+  }
+  const itemsHtml = chosen.map(i=>`<li>${i.name} — <span class="euro">${i.price.toFixed(2)}€</span></li>`).join("");
+  addMsg(
+    `Con ${budget}€ te propongo esta lista:
+    <div class="list-card"><ul>${itemsHtml}</ul>
+    <p class="total">Total: ${spent.toFixed(2)}€ de ${budget}€</p></div>`,
+    "bot", true
+  );
+
+  const recipe = buildRecipe(chosen);
+  addMsg(
+    `Con esos ingredientes puedes preparar esto:
+    <div class="list-card"><strong>${recipe.title}</strong>
+    <ul>${recipe.steps.map(s=>`<li>${s}</li>`).join("")}</ul></div>`,
+    "bot", true
+  );
+});
+
+function buildRecipe(chosen){
+  const byCat = c => chosen.find(i=>i.cat===c);
+  const protein = byCat("proteina");
+  const carb = byCat("carbo");
+  const veg = byCat("verdura") || byCat("fruta");
+  const dairy = byCat("lacteo");
+  const parts = [protein, carb, veg].filter(Boolean);
+
+  if(parts.length === 0){
+    return {
+      title: "Bol de temporada con tu compra",
+      steps: [
+        `Lava y trocea ${chosen.slice(0,3).map(i=>i.name.split(" (")[0].toLowerCase()).join(", ")}.`,
+        "Mezcla todo en un bol y añade un chorrito de aceite de oliva y sal.",
+        "Sirve frío o templado, al gusto."
+      ]
+    };
+  }
+
+  const title = "Bol de " + parts.map(i=>i.name.split(" (")[0].toLowerCase()).join(" con ");
+  const steps = [];
+  if(protein) steps.push(`Cocina ${protein.name.split(" (")[0].toLowerCase()} hasta que esté hecho (hervido, a la plancha o al horno según el ingrediente).`);
+  if(carb) steps.push(`Prepara ${carb.name.split(" (")[0].toLowerCase()} siguiendo las instrucciones del envase.`);
+  if(veg) steps.push(`Lava y trocea ${veg.name.split(" (")[0].toLowerCase()} y añádelo fresco o salteado.`);
+  if(dairy) steps.push(`Acompaña con ${dairy.name.split(" (")[0].toLowerCase()} para un toque extra.`);
+  steps.push("Junta todo en un bol, condimenta con aceite, sal y especias al gusto y sirve.");
+  return {title, steps};
+}
+
+// ---- Galería / Foto ----
+const camView = document.getElementById('camView');
+const openGallery = document.getElementById('openGallery');
+const openCam = document.getElementById('openCam');
+const galleryInput = document.getElementById('galleryInput');
+const camInput = document.getElementById('camInput');
+const nutriResult = document.getElementById('nutriResult');
+
+openGallery.addEventListener('click', ()=> galleryInput.click());
+openCam.addEventListener('click', ()=> camInput.click());
+
+function handleImage(file){
+  if(!file) return;
+  const url = URL.createObjectURL(file);
+  camView.innerHTML = `<img src="${url}" alt="Producto seleccionado" style="width:100%;height:100%;object-fit:cover;">`;
+  const item = FOODS[Math.floor(Math.random()*FOODS.length)];
+  nutriResult.innerHTML = `
+    <div class="nutri-card">
+      <h3>${item.name}</h3>
+      <p style="opacity:.7;margin:0;">Ingredientes principales detectados y valores por 100g (ejemplo).</p>
+      <div class="nutri-grid">
+        <div><span>Calorías</span>${item.cal} kcal</div>
+        <div><span>Nutrientes</span>${item.nutrients}</div>
+        <div><span>Precio aprox.</span><span class="euro">${item.price.toFixed(2)}€</span></div>
+        <div><span>Categoría</span>${item.tags.join(", ")}</div>
+      </div>
+    </div>`;
+}
+
+galleryInput.addEventListener('change', e=> handleImage(e.target.files[0]));
+camInput.addEventListener('change', e=> handleImage(e.target.files[0]));
+</script>
+</body>
+</html>
